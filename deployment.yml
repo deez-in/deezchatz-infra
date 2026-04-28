@@ -1,0 +1,374 @@
+---
+# ==============================================================================
+# PLAY 1: System-Level Setup (Runs as Root)
+# ==============================================================================
+- name: Setup Podman and Rootless Environment
+  hosts: all
+  become: yes 
+  tasks:
+    - name: Install System Dependencies
+      dnf:
+        name:
+          - podman
+          - git
+        state: present
+
+    - name: Get UID of the rocky user
+      command: id -u rocky
+      register: rocky_uid
+      changed_when: false
+
+    - name: Enable systemd lingering for the rocky user
+      command: loginctl enable-linger rocky
+      args:
+        creates: "/var/lib/systemd/linger/rocky"
+
+    - name: Wake up the user systemd session via shell
+      command: "systemctl start user@{{ rocky_uid.stdout }}.service"
+      changed_when: false
+
+    - name: Allow unprivileged users to bind to ports 80 and 443
+      sysctl:
+        name: net.ipv4.ip_unprivileged_port_start
+        value: '80'
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Download AWS Signing Helper
+      get_url:
+        url: "{{ 'https://rolesanywhere.amazonaws.com/releases/1.8.0/X86_64/Linux/Amzn2023/aws_signing_helper' if ansible_architecture == 'x86_64' else 'https://rolesanywhere.amazonaws.com/releases/1.8.0/Aarch64/Linux/Amzn2023/aws_signing_helper' }}"
+        dest: /usr/local/bin/aws_signing_helper
+        mode: '0755'
+        owner: root
+        group: root
+
+# ==============================================================================
+# PLAY: Install Dependencies on Public Services (Runs as Root)
+# ==============================================================================
+- name: Install AWS CLI on Public Instances
+  hosts: public_instances
+  become: yes
+  tasks:
+    - name: Ensure unzip is installed
+      dnf:
+        name: unzip
+        state: present
+
+    - name: Download and extract AWS CLI installer
+      unarchive:
+        src: "https://awscli.amazonaws.com/awscli-exe-linux-{{ 'x86_64' if ansible_architecture == 'x86_64' else 'aarch64' }}.zip"
+        dest: /tmp
+        remote_src: yes
+        creates: /usr/local/bin/aws
+
+    - name: Run AWS CLI installer
+      command: /tmp/aws/install --update
+      args:
+        creates: /usr/local/bin/aws
+
+# ==============================================================================
+# PLAY 2: Public Services (Runs as 'rocky' user)
+# ==============================================================================
+- name: Deploy Rootless RMQTT Broker
+  hosts: public_instances
+  become: no 
+  tasks:
+    - name: Ensure user systemd container directory exists
+      file:
+        path: /home/rocky/.config/containers/systemd
+        state: directory
+        mode: '0755'
+
+    # ----- RMQTT Configuration -----
+    - name: Create RMQTT config directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /home/rocky/.config/rmqtt
+        - /home/rocky/.config/rmqtt/plugins
+
+    - name: Copy RMQTT main config
+      copy:
+        src: config/rmqtt/rmqtt.toml
+        dest: /home/rocky/.config/rmqtt/rmqtt.toml
+        mode: '0644'
+      notify: Reload and start RMQTT
+
+    - name: Template RMQTT plugin configs
+      ansible.builtin.template:
+        src: "{{ item }}"
+        dest: "/home/rocky/.config/rmqtt/plugins/{{ item | basename }}"
+        mode: '0644'
+      loop:
+        - config/rmqtt/plugins/rmqtt-session-storage.toml
+        - config/rmqtt/plugins/rmqtt-message-storage.toml
+      notify: Reload and start RMQTT
+
+    # ----- RMQTT Source Build (Temporary) -----
+    - name: Clone RMQTT repository
+      ansible.builtin.git:
+        repo: 'https://github.com/rmqtt/rmqtt.git'
+        dest: /home/rocky/rmqtt-source
+        update: yes
+      register: rmqtt_git
+
+    - name: Check if custom RMQTT image exists
+      command: podman image exists localhost/rmqtt:custom
+      register: rmqtt_image_check
+      failed_when: false
+      changed_when: false
+
+    - name: Build RMQTT Docker image from source
+      command: podman build -t localhost/rmqtt:custom /home/rocky/rmqtt-source
+      when: rmqtt_git.changed or rmqtt_image_check.rc != 0
+
+    # ----- RMQTT Container Quadlet -----
+    - name: Create RMQTT Quadlet file
+      copy:
+        dest: /home/rocky/.config/containers/systemd/rmqtt.container
+        content: |
+          [Container]
+          # === TEMPORARY: Build from source ===
+          Image=localhost/rmqtt:custom
+          # === END TEMPORARY ===
+          # Explicit ARM64 tag for OCI Ampere instances
+          # Image=docker.io/rmqtt/rmqtt:latest-arm64
+          PublishPort=1883:1883
+          Volume=/home/rocky/.config/rmqtt/rmqtt.toml:/app/rmqtt/rmqtt.toml:Z
+          Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-session-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-session-storage.toml:Z
+          Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-message-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-message-storage.toml:Z
+
+          [Service]
+          Restart=always
+
+          [Install]
+          WantedBy=default.target 
+      notify: Reload and start RMQTT
+
+  handlers:
+     - name: Reload and start RMQTT
+       ansible.builtin.systemd:
+         name: rmqtt.service
+         scope: user
+         enabled: yes
+         state: restarted
+         daemon_reload: yes
+
+# ==============================================================================
+# PLAY 3: Private Services (Runs as 'rocky' user)
+# ==============================================================================
+- name: Deploy Rootless Redis
+  hosts: private_instances
+  become: no 
+  tasks:
+    - name: Ensure user systemd container directory exists
+      file:
+        path: /home/rocky/.config/containers/systemd
+        state: directory
+        mode: '0755'
+
+    - name: Create Redis Quadlet file
+      copy:
+        dest: /home/rocky/.config/containers/systemd/redis.container
+        content: |
+          [Container]
+          Image=docker.io/library/redis:7-alpine
+          PublishPort=6379:6379
+          Exec=redis-server --save 60 1 --loglevel warning --maxmemory 12gb --maxmemory-policy allkeys-lru
+
+          [Service]
+          Restart=always
+
+          [Install]
+          WantedBy=default.target 
+      notify: Reload and start Redis
+
+  handlers:
+    - name: Reload and start Redis
+      ansible.builtin.systemd:
+        name: redis.service
+        scope: user
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+
+# ==============================================================================
+# PLAY 4: KhamoshChat API (Runs as 'rocky' user)
+# ==============================================================================
+- name: Deploy Rootless KhamoshChat API
+  hosts: public_instances
+  become: no
+  tasks:
+    - name: Ensure user systemd container directory exists
+      file:
+        path: /home/rocky/.config/containers/systemd
+        state: directory
+        mode: '0755'
+
+    - name: Template KhamoshChat API Quadlet file
+      ansible.builtin.template:
+        src: config/khamoshchat-api/khamoshchat-api.container.j2
+        dest: /home/rocky/.config/containers/systemd/khamoshchat-api.container
+        mode: '0644'
+      notify: Reload and start KhamoshChat API
+
+  handlers:
+    - name: Reload and start KhamoshChat API
+      ansible.builtin.systemd:
+        name: khamoshchat-api.service
+        scope: user
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+
+# ==============================================================================
+# PLAY 5: Nginx Reverse Proxy (Runs as 'rocky' user)
+# ==============================================================================
+- name: Deploy Rootless Nginx Reverse Proxy
+  hosts: public_instances
+  become: no
+  tasks:
+    - name: Ensure user systemd container directory exists
+      file:
+        path: /home/rocky/.config/containers/systemd
+        state: directory
+        mode: '0755'
+
+    # ----- Let's Encrypt Certificates Directories -----
+    - name: Ensure user systemd directory exists
+      file:
+        path: /home/rocky/.config/systemd/user
+        state: directory
+        mode: '0755'
+
+    - name: Create Let's Encrypt and Webroot directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /home/rocky/.config/letsencrypt
+        - /home/rocky/.config/letsencrypt/logs
+        - /home/rocky/.config/letsencrypt/work
+        - /home/rocky/.config/certbot-www
+
+    - name: Check if Let's Encrypt certificate exists
+      stat:
+        path: "/home/rocky/.config/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+      register: cert_chain
+
+    - name: Ensure target directory for dummy certificate exists
+      file:
+        path: "/home/rocky/.config/letsencrypt/live/{{ domain_name }}"
+        state: directory
+        mode: '0755'
+      when: not cert_chain.stat.exists
+
+    - name: Generate dummy certificate for Nginx initial start
+      command: >
+        openssl req -x509 -nodes -newkey rsa:2048 -days 1
+        -keyout /home/rocky/.config/letsencrypt/live/{{ domain_name }}/privkey.pem
+        -out /home/rocky/.config/letsencrypt/live/{{ domain_name }}/fullchain.pem
+        -subj "/CN={{ domain_name }}"
+      args:
+        creates: "/home/rocky/.config/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+      when: not cert_chain.stat.exists
+
+    # ----- Nginx Configuration -----
+    - name: Create Nginx config directory
+      file:
+        path: /home/rocky/.config/nginx
+        state: directory
+        mode: '0755'
+
+    - name: Template Nginx configuration
+      ansible.builtin.template:
+        src: config/nginx/nginx.conf.j2
+        dest: /home/rocky/.config/nginx/nginx.conf
+        mode: '0644'
+      notify: Reload and start Nginx
+
+    # ----- Nginx Container Quadlet -----
+    - name: Template Nginx Quadlet file
+      ansible.builtin.template:
+        src: config/nginx/nginx.container.j2
+        dest: /home/rocky/.config/containers/systemd/nginx.container
+        mode: '0644'
+      notify: Reload and start Nginx
+
+    - name: Flush handlers to start Nginx with dummy certificate
+      meta: flush_handlers
+
+    - name: Remove dummy certificate directory to allow Certbot provisioning
+      file:
+        path: "/home/rocky/.config/letsencrypt/live/{{ domain_name }}"
+        state: absent
+      when: not cert_chain.stat.exists
+
+    # ----- Run Certbot ACME Challenge -----
+    - name: Run Certbot to provision real certificate
+      command: >
+        podman run -i --rm --name certbot
+        --userns=keep-id
+        -v /home/rocky/.config/letsencrypt:/etc/letsencrypt:z
+        -v /home/rocky/.config/letsencrypt/logs:/var/log/letsencrypt:z
+        -v /home/rocky/.config/letsencrypt/work:/var/lib/letsencrypt:z
+        -v /home/rocky/.config/certbot-www:/var/www/certbot:z
+        docker.io/certbot/certbot certonly
+        --webroot -w /var/www/certbot
+        -d {{ domain_name }}
+        --email debarkamondal@gmail.com
+        --agree-tos --non-interactive
+        --force-renewal
+      when: not cert_chain.stat.exists
+      notify: Reload and start Nginx
+
+    # ----- Automatic Renewal Timer -----
+    - name: Create Certbot renewal service
+      copy:
+        dest: /home/rocky/.config/systemd/user/certbot-renew.service
+        content: |
+          [Unit]
+          Description=Certbot Renewal
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/bin/podman run -i --rm --name certbot --userns=keep-id -v /home/rocky/.config/letsencrypt:/etc/letsencrypt:z -v /home/rocky/.config/letsencrypt/logs:/var/log/letsencrypt:z -v /home/rocky/.config/letsencrypt/work:/var/lib/letsencrypt:z -v /home/rocky/.config/certbot-www:/var/www/certbot:z docker.io/certbot/certbot renew
+          ExecStartPost=/usr/bin/systemctl --user reload nginx.service
+      notify: Enable Certbot timer
+
+    - name: Create Certbot renewal timer
+      copy:
+        dest: /home/rocky/.config/systemd/user/certbot-renew.timer
+        content: |
+          [Unit]
+          Description=Twice daily Certbot renewal check
+
+          [Timer]
+          OnCalendar=*-*-* 00/12:00:00
+          RandomizedDelaySec=43200
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+      notify: Enable Certbot timer
+
+  handlers:
+    - name: Reload and start Nginx
+      ansible.builtin.systemd:
+        name: nginx.service
+        scope: user
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Enable Certbot timer
+      ansible.builtin.systemd:
+        name: certbot-renew.timer
+        scope: user
+        state: started
+        enabled: yes
+        daemon_reload: yes

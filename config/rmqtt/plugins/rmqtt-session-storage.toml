@@ -1,0 +1,10 @@
+##--------------------------------------------------------------------
+## rmqtt-session-storage - Redis Backend
+##--------------------------------------------------------------------
+
+## Storage type: sled, redis, redis-cluster
+storage.type = "redis"
+
+## Redis connection
+storage.redis.url = "redis://{{ oci_private_ip }}:6379/"
+storage.redis.prefix = "session-{node}"

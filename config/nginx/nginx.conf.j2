@@ -1,0 +1,82 @@
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    keepalive_timeout  65;
+
+    # Redirect all HTTP traffic to HTTPS, except ACME challenges
+    server {
+        listen       80;
+        listen  [::]:80;
+        server_name  {{ domain_name }};
+
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+
+        location / {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    # API HTTPS termination
+    server {
+        listen       443 ssl;
+        listen  [::]:443 ssl;
+        server_name  {{ domain_name }};
+
+        ssl_certificate     /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{ domain_name }}/privkey.pem;
+
+        # Let's Encrypt / Mozilla strict settings
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+
+        location / {
+            # Proxy to KhamoshChat API listening on host port 3000
+            proxy_pass http://host.containers.internal:3000;
+            
+            # Preserve headers
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+
+# Stream block for RMQTT MQTTS (TCP TLS to TCP proxy)
+stream {
+    server {
+        listen       8883 ssl;
+        listen  [::]:8883 ssl;
+
+        ssl_certificate     /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{ domain_name }}/privkey.pem;
+
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+
+        # Proxy decrypted MQTT traffic to RMQTT listening on host port 1883
+        proxy_pass host.containers.internal:1883;
+    }
+}
