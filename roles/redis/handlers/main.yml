@@ -1,0 +1,8 @@
+---
+- name: Reload and start Redis
+  ansible.builtin.systemd:
+    name: redis.service
+    scope: user
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

@@ -2,6 +2,7 @@
 # Multi-arch image; ARM64 is pulled automatically
 Image=ghcr.io/debarkamondal/khamoshchat-api:main
 PublishPort=3000:3000
+Network=khamoshchat.network
 UserNS=keep-id
 
 Environment=HOME=/home/rocky

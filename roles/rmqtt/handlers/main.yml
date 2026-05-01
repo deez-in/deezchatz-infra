@@ -1,0 +1,8 @@
+---
+- name: Reload and start RMQTT
+  ansible.builtin.systemd:
+    name: rmqtt.service
+    scope: user
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

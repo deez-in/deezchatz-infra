@@ -1,0 +1,16 @@
+---
+- name: Reload and start Nginx
+  ansible.builtin.systemd:
+    name: nginx.service
+    scope: user
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: Enable Certbot timer
+  ansible.builtin.systemd:
+    name: certbot-renew.timer
+    scope: user
+    state: started
+    enabled: yes
+    daemon_reload: yes

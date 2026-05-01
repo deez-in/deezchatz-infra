@@ -1,0 +1,22 @@
+---
+- name: Ensure user systemd container directory exists
+  ansible.builtin.file:
+    path: /home/rocky/.config/containers/systemd
+    state: directory
+    mode: '0755'
+
+- name: Create Redis Quadlet file
+  ansible.builtin.copy:
+    dest: /home/rocky/.config/containers/systemd/redis.container
+    content: |
+      [Container]
+      Image=docker.io/library/redis:7-alpine
+      PublishPort=6379:6379
+      Exec=redis-server --save 60 1 --loglevel warning --maxmemory 12gb --maxmemory-policy allkeys-lru
+
+      [Service]
+      Restart=always
+
+      [Install]
+      WantedBy=default.target 
+  notify: Reload and start Redis

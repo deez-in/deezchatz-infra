@@ -1,0 +1,25 @@
+---
+- name: Ensure unzip is installed
+  ansible.builtin.dnf:
+    name: unzip
+    state: present
+
+- name: Download and extract AWS CLI installer
+  ansible.builtin.unarchive:
+    src: "https://awscli.amazonaws.com/awscli-exe-linux-{{ 'x86_64' if ansible_facts['architecture'] == 'x86_64' else 'aarch64' }}.zip"
+    dest: /tmp
+    remote_src: yes
+    creates: /usr/local/bin/aws
+
+- name: Run AWS CLI installer
+  ansible.builtin.command: /tmp/aws/install --update
+  args:
+    creates: /usr/local/bin/aws
+
+- name: Download AWS Signing Helper
+  ansible.builtin.get_url:
+    url: "{{ 'https://rolesanywhere.amazonaws.com/releases/1.8.0/X86_64/Linux/Amzn2023/aws_signing_helper' if ansible_facts['architecture'] == 'x86_64' else 'https://rolesanywhere.amazonaws.com/releases/1.8.0/Aarch64/Linux/Amzn2023/aws_signing_helper' }}"
+    dest: /usr/local/bin/aws_signing_helper
+    mode: '0755'
+    owner: root
+    group: root

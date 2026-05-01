@@ -11,17 +11,30 @@ This is an Ansible playbook repository for deploying rootless Podman containers 
 ### Running Playbooks
 
 ```bash
-# Run deployment playbook with local config
-ansible-playbook -i inventory.yml deployment.yml -e @local-config.yml
+# Run deployment playbook with local config and encrypted secrets
+ansible-playbook -i inventory.yml deployment.yml -e @config.yml -e @vault.yml --ask-vault-pass
 
-# Run cleanup playbook
-ansible-playbook -i inventory.yml cleanup.yml -e @local-config.yml
+# Or use a password file to avoid typing it every time
+# ansible-playbook -i inventory.yml deployment.yml -e @config.yml -e @vault.yml --vault-password-file .vault_pass
 
 # Run a specific play or task (limit to hosts)
-ansible-playbook -i inventory.yml deployment.yml --limit public_instances
+ansible-playbook -i inventory.yml deployment.yml --limit public_instances -e @config.yml -e @vault.yml --ask-vault-pass
 
 # Run with verbose output for debugging
-ansible-playbook -i inventory.yml deployment.yml -e @local-config.yml -v
+ansible-playbook -i inventory.yml deployment.yml -e @config.yml -e @vault.yml --ask-vault-pass -v
+```
+
+### Secrets Management (Ansible Vault)
+
+```bash
+# Encrypt the secrets file
+ansible-vault encrypt vault.yml
+
+# Edit the encrypted file
+ansible-vault edit vault.yml
+
+# View the encrypted file without editing
+ansible-vault view vault.yml
 ```
 
 ### Syntax Validation
@@ -35,7 +48,6 @@ ansible-playbook --syntax-check *.yml
 
 # Lint Ansible playbooks (install via: pip install ansible-lint)
 ansible-lint deployment.yml
-ansible-lint cleanup.yml
 ```
 
 ### YAML Validation
@@ -52,10 +64,10 @@ yamllint .
 
 ```bash
 # Run in check mode (no actual changes)
-ansible-playbook -i inventory.yml deployment.yml -e @local-config.yml --check
+ansible-playbook -i inventory.yml deployment.yml -e @config.yml --check
 
 # Check mode with diff
-ansible-playbook -i inventory.yml deployment.yml -e @local-config.yml --check --diff
+ansible-playbook -i inventory.yml deployment.yml -e @config.yml --check --diff
 ```
 
 ---
@@ -147,7 +159,9 @@ ansible-playbook -i inventory.yml deployment.yml -e @local-config.yml --check --
 ### Security
 
 - Never commit secrets to version control
-- Use `local-config.yml` for sensitive variables (add to `.gitignore`)
+- Use `vault.yml` for sensitive variables and encrypt it with Ansible Vault
+- Use `config.yml` for non-sensitive local variables (add both to `.gitignore`)
+- Use `example.config.yml` and `example.vault.yml` as templates for your local setup
 - Use `become: yes` only when necessary (prefer rootless where possible)
 - Avoid storing credentials in inventory files
 
@@ -159,9 +173,18 @@ ansible-playbook -i inventory.yml deployment.yml -e @local-config.yml --check --
 ansible/
 ├── AGENTS.md              # This file
 ├── inventory.yml         # Ansible inventory with host groups
-├── local-config.yml      # Local variables (secrets - do not commit)
+├── config.yml            # Non-sensitive local variables (GITIGNORED)
+├── vault.yml             # Encrypted secrets (GITIGNORED)
+├── example.config.yml    # Placeholder/template for config.yml
+├── example.vault.yml     # Placeholder/template for vault.yml
 ├── deployment.yml        # Main deployment playbook
-└── cleanup.yml           # Cleanup legacy containers
+└── roles/                 # Modular Ansible roles
+    ├── common/
+    ├── aws_cli/
+    ├── rmqtt/
+    ├── redis/
+    ├── api/
+    └── nginx/
 ```
 
 ---

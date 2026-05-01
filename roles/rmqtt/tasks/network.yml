@@ -1,0 +1,14 @@
+---
+- name: Ensure user systemd container directory exists
+  ansible.builtin.file:
+    path: /home/rocky/.config/containers/systemd
+    state: directory
+    mode: '0755'
+
+- name: Create KhamoshChat Podman Network Quadlet
+  ansible.builtin.copy:
+    dest: /home/rocky/.config/containers/systemd/khamoshchat.network
+    content: |
+      [Network]
+      NetworkName=khamoshchat
+    mode: '0644'

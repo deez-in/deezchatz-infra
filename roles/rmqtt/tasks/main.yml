@@ -1,0 +1,57 @@
+---
+- name: Setup Podman Network
+  ansible.builtin.include_tasks: network.yml
+
+- name: Ensure user systemd container directory exists
+  ansible.builtin.file:
+    path: /home/rocky/.config/containers/systemd
+    state: directory
+    mode: '0755'
+
+- name: Create RMQTT config directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /home/rocky/.config/rmqtt
+    - /home/rocky/.config/rmqtt/plugins
+
+- name: Copy RMQTT main config
+  ansible.builtin.copy:
+    src: rmqtt.toml
+    dest: /home/rocky/.config/rmqtt/rmqtt.toml
+    mode: '0644'
+  notify: Reload and start RMQTT
+
+- name: Template RMQTT plugin configs
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/home/rocky/.config/rmqtt/plugins/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    mode: '0644'
+  loop:
+    - rmqtt-session-storage.toml.j2
+    - rmqtt-message-storage.toml.j2
+    - rmqtt-web-hook.toml.j2
+  notify: Reload and start RMQTT
+
+- name: Create RMQTT Quadlet file
+  ansible.builtin.copy:
+    dest: /home/rocky/.config/containers/systemd/rmqtt.container
+    content: |
+      [Container]
+      # Official image now contains required fixes
+      Image=docker.io/rmqtt/rmqtt:latest
+      PublishPort=1883:1883
+      Network=khamoshchat.network
+      Volume=/home/rocky/.config/rmqtt/rmqtt.toml:/app/rmqtt/rmqtt.toml:Z
+      Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-session-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-session-storage.toml:Z
+      Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-message-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-message-storage.toml:Z
+      Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-web-hook.toml:/app/rmqtt/rmqtt-plugins/rmqtt-web-hook.toml:Z
+
+      [Service]
+      Restart=always
+
+      [Install]
+      WantedBy=default.target 
+  notify: Reload and start RMQTT

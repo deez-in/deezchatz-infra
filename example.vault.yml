@@ -1,0 +1,23 @@
+---
+# ==============================================================================
+# EXAMPLE SECRETS VAULT (Copy to vault.yml and encrypt)
+# ==============================================================================
+
+# AWS Roles Anywhere Credentials
+aws_rolesanywhere_cert: |
+  -----BEGIN CERTIFICATE-----
+  # Paste your certificate here
+  -----END CERTIFICATE-----
+
+aws_rolesanywhere_key: |
+  -----BEGIN PRIVATE KEY-----
+  # Paste your private key here
+  -----END PRIVATE KEY-----
+
+# AWS Roles Anywhere ARNs
+aws_trust_anchor_arn: "arn:aws:rolesanywhere:region:account:trust-anchor/id"
+aws_profile_arn: "arn:aws:rolesanywhere:region:account:profile/id"
+aws_role_arn: "arn:aws:iam::account:role/role-name"
+
+# KhamoshChat API - Google OAuth
+khamoshchat_google_client_secret: "your google oauth client secret"

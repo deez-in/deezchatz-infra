@@ -1,0 +1,30 @@
+---
+- name: Install System Dependencies
+  ansible.builtin.dnf:
+    name:
+      - podman
+      - git
+    state: present
+
+- name: Get UID of the rocky user
+  ansible.builtin.command: id -u rocky
+  register: rocky_uid
+  changed_when: false
+
+- name: Enable systemd lingering for the rocky user
+  ansible.builtin.command: loginctl enable-linger rocky
+  args:
+    creates: "/var/lib/systemd/linger/rocky"
+
+- name: Wake up the user systemd session via shell
+  ansible.builtin.command: "systemctl start user@{{ rocky_uid.stdout }}.service"
+  changed_when: false
+
+- name: Allow unprivileged users to bind to ports 80 and 443
+  ansible.builtin.sysctl:
+    name: net.ipv4.ip_unprivileged_port_start
+    value: '80'
+    sysctl_set: yes
+    state: present
+    reload: yes
+

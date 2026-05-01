@@ -21,7 +21,7 @@ plugins.dir = "/app/rmqtt/rmqtt-plugins/"
 plugins.default_startups = [
     "rmqtt-session-storage",
     "rmqtt-message-storage",
-    "rmqtt-http-api",
+    "rmqtt-web-hook",
 ]
 
 # MQTT settings

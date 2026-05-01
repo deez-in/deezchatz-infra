@@ -4,7 +4,6 @@ oci_private_ip: "Private Server IP"
 
 # KhamoshChat API - Google OAuth
 khamoshchat_google_client_id: "google oauth client id"
-khamoshchat_google_client_secret: "google oauth client secret"
 khamoshchat_google_redirect_uri: "http://localhost:3000/register/oauth/google/callback"
 
 # Let's Encrypt Automation
