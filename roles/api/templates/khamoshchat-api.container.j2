@@ -1,6 +1,6 @@
 [Container]
 # Multi-arch image; ARM64 is pulled automatically
-Image=ghcr.io/debarkamondal/khamoshchat-api:main
+Image=ghcr.io/debarkamondal/khamoshchat-api:redesign
 PublishPort=3000:3000
 Network=khamoshchat.network
 UserNS=keep-id
@@ -9,7 +9,8 @@ Environment=HOME=/home/rocky
 Environment=AWS_CONFIG_FILE=/home/rocky/.aws/config
 Environment=AWS_PROFILE=rolesanywhere
 Environment=REDIS_URL=redis://{{ oci_private_ip }}:6379
-Environment=PRIMARY_TABLE=khamoshchat-identity-test-primary
+Environment=PRIMARY_TABLE={{ dynamodb_identity_table }}
+Environment=GSI_LOOKUP_INDEX=lookup
 Environment=AWS_REGION=ap-south-1
 Environment=GOOGLE_CLIENT_ID={{ khamoshchat_google_client_id }}
 Environment=GOOGLE_CLIENT_SECRET={{ khamoshchat_google_client_secret }}
@@ -18,7 +19,6 @@ Environment=GOOGLE_REDIRECT_URI={{ khamoshchat_google_redirect_uri }}
 Volume=%h/.aws/config:/home/rocky/.aws/config:ro,Z
 Volume=/usr/local/bin/aws_signing_helper:/usr/local/bin/aws_signing_helper:ro
 Volume=%h/.aws/certs:/home/rocky/.aws/certs:ro,Z
-
 
 [Service]
 Restart=always

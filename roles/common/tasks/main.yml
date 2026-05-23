@@ -28,3 +28,23 @@
     state: present
     reload: yes
 
+# Podman's Netavark backend requires these modules for rootless networking.
+# They are usually loaded by firewalld, but must be manual if firewalld is inactive.
+- name: Load kernel modules required by Podman networking
+  ansible.builtin.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - ip_tables
+    - iptable_nat
+
+- name: Persist Podman kernel modules across reboots
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/podman-networking.conf
+    content: |
+      # Required for Podman rootless networking (netavark)
+      ip_tables
+      iptable_nat
+    mode: '0644'
+
+

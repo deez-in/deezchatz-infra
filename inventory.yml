@@ -1,4 +1,4 @@
-# inventory.yml (If using two different keys)
+# inventory.yml
 all:
   vars:
     ansible_user: rocky
@@ -8,13 +8,11 @@ all:
     public_instances:
       hosts:
         api_broker_node:
-          ansible_host: "{{ oci_bastion_ip }}"
-          # Define the specific key for the public instance here
+          # Use the SSH alias from ~/.ssh/config
+          ansible_host: broker
           
     private_instances:
       hosts:
         redis_sync_node:
-          ansible_host: "{{ oci_private_ip }}" 
-          # Define the specific key for the private instance here
-      vars:
-        ansible_ssh_common_args: '-o ProxyJump={{ ansible_user }}@{{ oci_bastion_ip }}'
+          # Use the SSH alias from ~/.ssh/config
+          ansible_host: backhaul

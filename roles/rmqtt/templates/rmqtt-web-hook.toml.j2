@@ -2,8 +2,8 @@
 ## Webhook Configuration
 ##--------------------------------------------------------------------
 
-# The HTTP URL for the webhook
-url = "http://khamoshchat-api:3000/mqtt/webhook"
+# The HTTP URL for the webhook (Private API port 3001)
+url = "http://khamoshchat-api:3001/offline_message"
 
 # The pool size for HTTP requests
 pool_size = 32
@@ -12,9 +12,10 @@ pool_size = 32
 timeout = 5000
 
 # Webhook rules
-# event: client_connected, client_disconnected, client_subscribe, client_unsubscribe, session_created, session_terminated, message_publish, message_delivered, message_acked
+# Supported actions: client_connected, client_disconnected, message_publish, offline_message, etc.
 rules = [
-    { event = "client_connected", action = "post" },
-    { event = "client_disconnected", action = "post" },
-    { event = "message_publish", action = "post" }
+    { event = "client_connected", action = "client_connected" },
+    { event = "client_disconnected", action = "client_disconnected" },
+    { event = "message_publish", action = "message_publish" },
+    { event = "offline_message", action = "offline_message" }
 ]
