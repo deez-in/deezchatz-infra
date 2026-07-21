@@ -1,5 +1,6 @@
 [Container]
 Image=docker.io/library/nginx:alpine
+ContainerName=nginx
 PublishPort=80:80
 PublishPort=443:443
 PublishPort=8883:8883
@@ -10,6 +11,7 @@ Volume=/home/rocky/.config/certbot-www:/var/www/certbot:ro,z
 
 [Service]
 Restart=always
+ExecReload=/usr/bin/podman kill --signal=HUP nginx
 
 [Install]
 WantedBy=default.target
