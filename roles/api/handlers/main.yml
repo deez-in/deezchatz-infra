@@ -1,7 +1,7 @@
 ---
-- name: Reload and start KhamoshChat API
+- name: Reload and start Nijhum API
   ansible.builtin.systemd:
-    name: khamoshchat-api.service
+    name: nijhum-api.service
     scope: user
     state: restarted
     enabled: yes

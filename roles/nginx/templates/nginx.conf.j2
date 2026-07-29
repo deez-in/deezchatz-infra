@@ -51,7 +51,7 @@ http {
         ssl_prefer_server_ciphers on;
 
         location / {
-            # Proxy to KhamoshChat API listening on host port 3000
+            # Proxy to Nijhum API listening on host port 3000
             proxy_pass http://host.containers.internal:3000;
             
             # Preserve headers
@@ -69,8 +69,8 @@ stream {
         listen       8883 ssl;
         listen  [::]:8883 ssl;
 
-        ssl_certificate     /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/{{ domain_name }}/privkey.pem;
+        ssl_certificate     /etc/letsencrypt/live/{{ mqtt_domain_name | default(domain_name) }}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{ mqtt_domain_name | default(domain_name) }}/privkey.pem;
 
         ssl_protocols TLSv1.2 TLSv1.3;
         ssl_ciphers HIGH:!aNULL:!MD5;
