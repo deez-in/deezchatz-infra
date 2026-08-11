@@ -1,4 +1,4 @@
-# AGENTS.md - Nijhum Infrastructure Guide
+# AGENTS.md - DeezChatz Infrastructure Guide
 
 ## Overview
 

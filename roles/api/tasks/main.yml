@@ -23,18 +23,18 @@
     - { content: "{{ aws_rolesanywhere_cert }}", dest: "/home/rocky/.aws/certs/cert.pem" }
     - { content: "{{ aws_rolesanywhere_key }}", dest: "/home/rocky/.aws/certs/cert.key" }
   no_log: true
-  notify: Reload and start Nijhum API
+  notify: Reload and start DeezChatz API
 
 - name: Template AWS configuration file
   ansible.builtin.template:
     src: aws_config.j2
     dest: /home/rocky/.aws/config
     mode: '0600'
-  notify: Reload and start Nijhum API
+  notify: Reload and start DeezChatz API
 
-- name: Template Nijhum API Quadlet file
+- name: Template DeezChatz API Quadlet file
   ansible.builtin.template:
-    src: nijhum-api.container.j2
-    dest: /home/rocky/.config/containers/systemd/nijhum-api.container
+    src: deezchatz-api.container.j2
+    dest: /home/rocky/.config/containers/systemd/deezchatz-api.container
     mode: '0644'
-  notify: Reload and start Nijhum API
+  notify: Reload and start DeezChatz API

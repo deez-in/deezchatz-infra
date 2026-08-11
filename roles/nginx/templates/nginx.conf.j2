@@ -51,7 +51,7 @@ http {
         ssl_prefer_server_ciphers on;
 
         location / {
-            # Proxy to Nijhum API listening on host port 3000
+            # Proxy to DeezChatz API listening on host port 3000
             proxy_pass http://host.containers.internal:3000;
             
             # Preserve headers

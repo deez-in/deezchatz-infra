@@ -5,10 +5,10 @@
     state: directory
     mode: '0755'
 
-- name: Create Nijhum Podman Network Quadlet
+- name: Create DeezChatz Podman Network Quadlet
   ansible.builtin.copy:
-    dest: /home/rocky/.config/containers/systemd/nijhum.network
+    dest: /home/rocky/.config/containers/systemd/deezchatz.network
     content: |
       [Network]
-      NetworkName=nijhum
+      NetworkName=deezchatz
     mode: '0644'

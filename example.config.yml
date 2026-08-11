@@ -2,12 +2,12 @@
 oci_bastion_ip: "Public Server IP"
 oci_private_ip: "Private Server IP"
 
-# Nijhum API - Google OAuth
-nijhum_google_client_id: "google oauth client id"
-nijhum_google_redirect_uri: "https://api.nijhum.in/register/oauth/google/callback"
+# DeezChatz API - Google OAuth
+deez_google_client_id: "google oauth client id"
+deez_google_redirect_uri: "https://api.chatz.deez.in/register/oauth/google/callback"
 
 # Let's Encrypt Automation & Domains
 letsencrypt_email: "your email for registration"
-domain_name: "api.nijhum.in"
-mqtt_domain_name: "mqtt.nijhum.in"
-dynamodb_identity_table: "nijhum-identity"
+domain_name: "api.chatz.deez.in"
+mqtt_domain_name: "mqtt.deez.in"
+dynamodb_identity_table: "deezchatz-identity"

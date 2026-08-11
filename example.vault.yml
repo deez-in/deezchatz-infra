@@ -19,5 +19,5 @@ aws_trust_anchor_arn: "arn:aws:rolesanywhere:region:account:trust-anchor/id"
 aws_profile_arn: "arn:aws:rolesanywhere:region:account:profile/id"
 aws_role_arn: "arn:aws:iam::account:role/role-name"
 
-# Nijhum API - Google OAuth
-nijhum_google_client_secret: "your google oauth client secret"
+# DeezChatz API - Google OAuth
+deez_google_client_secret: "your google oauth client secret"
