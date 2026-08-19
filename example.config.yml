@@ -8,6 +8,14 @@ deez_google_redirect_uri: "https://api.chatz.deez.in/register/oauth/google/callb
 
 # Let's Encrypt Automation & Domains
 letsencrypt_email: "your email for registration"
-domain_name: "api.chatz.deez.in"
+api_domain_name: "api.chatz.deez.in"
 mqtt_domain_name: "mqtt.deez.in"
 dynamodb_identity_table: "deezchatz-identity"
+gsi_lookup_index: "lookup"
+aws_region: "ap-south-1"
+
+# Service & Performance Tuning
+redis_maxmemory: "12gb"
+api_container_name: "deezchatz-api"
+api_image_tag: "latest"
+api_private_port: 3001

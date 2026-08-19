@@ -5,9 +5,9 @@ PublishPort=80:80
 PublishPort=443:443
 PublishPort=8883:8883
 
-Volume=/home/rocky/.config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro,Z
-Volume=/home/rocky/.config/letsencrypt:/etc/letsencrypt:ro,z
-Volume=/home/rocky/.config/certbot-www:/var/www/certbot:ro,z
+Volume={{ ansible_user_dir }}/.config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro,Z
+Volume={{ ansible_user_dir }}/.config/letsencrypt:/etc/letsencrypt:ro,z
+Volume={{ ansible_user_dir }}/.config/certbot-www:/var/www/certbot:ro,z
 
 [Service]
 Restart=always

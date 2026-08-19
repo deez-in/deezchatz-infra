@@ -3,10 +3,10 @@
 Image=docker.io/rmqtt/rmqtt:latest
 PublishPort=1883:1883
 Network=deezchatz.network
-Volume=/home/rocky/.config/rmqtt/rmqtt.toml:/app/rmqtt/rmqtt.toml:Z
-Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-session-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-session-storage.toml:Z
-Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-message-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-message-storage.toml:Z
-Volume=/home/rocky/.config/rmqtt/plugins/rmqtt-web-hook.toml:/app/rmqtt/rmqtt-plugins/rmqtt-web-hook.toml:Z
+Volume={{ ansible_user_dir }}/.config/rmqtt/rmqtt.toml:/app/rmqtt/rmqtt.toml:Z
+Volume={{ ansible_user_dir }}/.config/rmqtt/plugins/rmqtt-session-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-session-storage.toml:Z
+Volume={{ ansible_user_dir }}/.config/rmqtt/plugins/rmqtt-message-storage.toml:/app/rmqtt/rmqtt-plugins/rmqtt-message-storage.toml:Z
+Volume={{ ansible_user_dir }}/.config/rmqtt/plugins/rmqtt-web-hook.toml:/app/rmqtt/rmqtt-plugins/rmqtt-web-hook.toml:Z
 
 [Service]
 Restart=always
