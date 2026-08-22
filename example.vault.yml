@@ -21,3 +21,7 @@ aws_role_arn: "arn:aws:iam::account:role/role-name"
 
 # DeezChatz API - Google OAuth
 deez_google_client_secret: "your google oauth client secret"
+
+#Server addresses
+oci_bastion_ip: "Public server ip"
+oci_private_ip: "Private server ip"
