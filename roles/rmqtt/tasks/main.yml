@@ -4,7 +4,7 @@
 
 - name: Ensure user systemd container directory exists
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/containers/systemd"
+    path: "{{ ansible_facts['user_dir'] }}/.config/containers/systemd"
     state: directory
     mode: '0755'
 
@@ -14,20 +14,20 @@
     state: directory
     mode: '0755'
   loop:
-    - "{{ ansible_user_dir }}/.config/rmqtt"
-    - "{{ ansible_user_dir }}/.config/rmqtt/plugins"
+    - "{{ ansible_facts['user_dir'] }}/.config/rmqtt"
+    - "{{ ansible_facts['user_dir'] }}/.config/rmqtt/plugins"
 
 - name: Copy RMQTT main config
   ansible.builtin.copy:
     src: rmqtt.toml
-    dest: "{{ ansible_user_dir }}/.config/rmqtt/rmqtt.toml"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/rmqtt/rmqtt.toml"
     mode: '0644'
   notify: Reload and start RMQTT
 
 - name: Template RMQTT plugin configs
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "{{ ansible_user_dir }}/.config/rmqtt/plugins/{{ item | basename | regex_replace('\\.j2$', '') }}"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/rmqtt/plugins/{{ item | basename | regex_replace('\\.j2$', '') }}"
     mode: '0644'
   loop:
     - rmqtt-session-storage.toml.j2
@@ -38,7 +38,7 @@
 - name: Template RMQTT Quadlet file
   ansible.builtin.template:
     src: rmqtt.container.j2
-    dest: "{{ ansible_user_dir }}/.config/containers/systemd/rmqtt.container"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/containers/systemd/rmqtt.container"
     mode: '0644'
   notify: Reload and start RMQTT
 

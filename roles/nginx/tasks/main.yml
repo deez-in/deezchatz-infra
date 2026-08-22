@@ -1,14 +1,14 @@
 ---
 - name: Ensure user systemd container directory exists
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/containers/systemd"
+    path: "{{ ansible_facts['user_dir'] }}/.config/containers/systemd"
     state: directory
     mode: '0755'
 
 # ----- Let's Encrypt Certificates Directories -----
 - name: Ensure user systemd directory exists
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/systemd/user"
+    path: "{{ ansible_facts['user_dir'] }}/.config/systemd/user"
     state: directory
     mode: '0755'
 
@@ -18,20 +18,20 @@
     state: directory
     mode: '0755'
   loop:
-    - "{{ ansible_user_dir }}/.config/letsencrypt"
-    - "{{ ansible_user_dir }}/.config/letsencrypt/logs"
-    - "{{ ansible_user_dir }}/.config/letsencrypt/work"
-    - "{{ ansible_user_dir }}/.config/certbot-www"
+    - "{{ ansible_facts['user_dir'] }}/.config/letsencrypt"
+    - "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/logs"
+    - "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/work"
+    - "{{ ansible_facts['user_dir'] }}/.config/certbot-www"
 
 # ===== API Domain Certificate =====
 - name: Check if API domain certificate exists
   ansible.builtin.stat:
-    path: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ api_domain_name }}/fullchain.pem"
+    path: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ api_domain_name }}/fullchain.pem"
   register: api_cert_chain
 
 - name: Ensure target directory for API dummy certificate exists
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ api_domain_name }}"
+    path: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ api_domain_name }}"
     state: directory
     mode: '0755'
   when: not api_cert_chain.stat.exists
@@ -39,23 +39,23 @@
 - name: Generate dummy API certificate for Nginx initial start
   ansible.builtin.command: >
     openssl req -x509 -nodes -newkey rsa:2048 -days 1
-    -keyout {{ ansible_user_dir }}/.config/letsencrypt/live/{{ api_domain_name }}/privkey.pem
-    -out {{ ansible_user_dir }}/.config/letsencrypt/live/{{ api_domain_name }}/fullchain.pem
+    -keyout {{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ api_domain_name }}/privkey.pem
+    -out {{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ api_domain_name }}/fullchain.pem
     -subj "/CN={{ api_domain_name }}"
   args:
-    creates: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ api_domain_name }}/fullchain.pem"
+    creates: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ api_domain_name }}/fullchain.pem"
   when: not api_cert_chain.stat.exists
 
 # ===== MQTT Domain Certificate (separate domain) =====
 - name: Check if MQTT domain certificate exists
   ansible.builtin.stat:
-    path: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/fullchain.pem"
+    path: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/fullchain.pem"
   register: mqtt_cert_chain
   when: mqtt_domain_name is defined and mqtt_domain_name != api_domain_name
 
 - name: Ensure target directory for MQTT dummy certificate exists
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ mqtt_domain_name }}"
+    path: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ mqtt_domain_name }}"
     state: directory
     mode: '0755'
   when: mqtt_domain_name is defined and mqtt_domain_name != api_domain_name and not (mqtt_cert_chain.stat.exists | default(true))
@@ -63,24 +63,24 @@
 - name: Generate dummy MQTT certificate for Nginx initial start
   ansible.builtin.command: >
     openssl req -x509 -nodes -newkey rsa:2048 -days 1
-    -keyout {{ ansible_user_dir }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/privkey.pem
-    -out {{ ansible_user_dir }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/fullchain.pem
+    -keyout {{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/privkey.pem
+    -out {{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/fullchain.pem
     -subj "/CN={{ mqtt_domain_name }}"
   args:
-    creates: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/fullchain.pem"
+    creates: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ mqtt_domain_name }}/fullchain.pem"
   when: mqtt_domain_name is defined and mqtt_domain_name != api_domain_name and not (mqtt_cert_chain.stat.exists | default(true))
 
 # ----- Nginx Configuration -----
 - name: Create Nginx config directory
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/nginx"
+    path: "{{ ansible_facts['user_dir'] }}/.config/nginx"
     state: directory
     mode: '0755'
 
 - name: Template Nginx configuration
   ansible.builtin.template:
     src: nginx.conf.j2
-    dest: "{{ ansible_user_dir }}/.config/nginx/nginx.conf"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/nginx/nginx.conf"
     mode: '0644'
   notify: Reload and start Nginx
 
@@ -88,7 +88,7 @@
 - name: Template Nginx Quadlet file
   ansible.builtin.template:
     src: nginx.container.j2
-    dest: "{{ ansible_user_dir }}/.config/containers/systemd/nginx.container"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/containers/systemd/nginx.container"
     mode: '0644'
   notify: Reload and start Nginx
 
@@ -98,7 +98,7 @@
 # ===== Certbot Provisioning: API Domain =====
 - name: Remove dummy API certificate directory to allow Certbot provisioning
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ api_domain_name }}"
+    path: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ api_domain_name }}"
     state: absent
   when: not api_cert_chain.stat.exists
 
@@ -106,10 +106,10 @@
   ansible.builtin.command: >
     podman run -i --rm --name certbot
     --userns=keep-id
-    -v {{ ansible_user_dir }}/.config/letsencrypt:/etc/letsencrypt:z
-    -v {{ ansible_user_dir }}/.config/letsencrypt/logs:/var/log/letsencrypt:z
-    -v {{ ansible_user_dir }}/.config/letsencrypt/work:/var/lib/letsencrypt:z
-    -v {{ ansible_user_dir }}/.config/certbot-www:/var/www/certbot:z
+    -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt:/etc/letsencrypt:z
+    -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt/logs:/var/log/letsencrypt:z
+    -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt/work:/var/lib/letsencrypt:z
+    -v {{ ansible_facts['user_dir'] }}/.config/certbot-www:/var/www/certbot:z
     docker.io/certbot/certbot certonly
     --webroot -w /var/www/certbot
     -d {{ api_domain_name }}
@@ -122,7 +122,7 @@
 # ===== Certbot Provisioning: MQTT Domain =====
 - name: Remove dummy MQTT certificate directory to allow Certbot provisioning
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/.config/letsencrypt/live/{{ mqtt_domain_name }}"
+    path: "{{ ansible_facts['user_dir'] }}/.config/letsencrypt/live/{{ mqtt_domain_name }}"
     state: absent
   when: mqtt_domain_name is defined and mqtt_domain_name != api_domain_name and not (mqtt_cert_chain.stat.exists | default(true))
 
@@ -130,10 +130,10 @@
   ansible.builtin.command: >
     podman run -i --rm --name certbot-mqtt
     --userns=keep-id
-    -v {{ ansible_user_dir }}/.config/letsencrypt:/etc/letsencrypt:z
-    -v {{ ansible_user_dir }}/.config/letsencrypt/logs:/var/log/letsencrypt:z
-    -v {{ ansible_user_dir }}/.config/letsencrypt/work:/var/lib/letsencrypt:z
-    -v {{ ansible_user_dir }}/.config/certbot-www:/var/www/certbot:z
+    -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt:/etc/letsencrypt:z
+    -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt/logs:/var/log/letsencrypt:z
+    -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt/work:/var/lib/letsencrypt:z
+    -v {{ ansible_facts['user_dir'] }}/.config/certbot-www:/var/www/certbot:z
     docker.io/certbot/certbot certonly
     --webroot -w /var/www/certbot
     -d {{ mqtt_domain_name }}
@@ -146,20 +146,20 @@
 # ----- Automatic Renewal Timer -----
 - name: Create Certbot renewal service
   ansible.builtin.copy:
-    dest: "{{ ansible_user_dir }}/.config/systemd/user/certbot-renew.service"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/systemd/user/certbot-renew.service"
     content: |
       [Unit]
       Description=Certbot Renewal
 
       [Service]
       Type=oneshot
-      ExecStart=/usr/bin/podman run -i --rm --name certbot --userns=keep-id -v {{ ansible_user_dir }}/.config/letsencrypt:/etc/letsencrypt:z -v {{ ansible_user_dir }}/.config/letsencrypt/logs:/var/log/letsencrypt:z -v {{ ansible_user_dir }}/.config/letsencrypt/work:/var/lib/letsencrypt:z -v {{ ansible_user_dir }}/.config/certbot-www:/var/www/certbot:z docker.io/certbot/certbot renew
+      ExecStart=/usr/bin/podman run -i --rm --name certbot --userns=keep-id -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt:/etc/letsencrypt:z -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt/logs:/var/log/letsencrypt:z -v {{ ansible_facts['user_dir'] }}/.config/letsencrypt/work:/var/lib/letsencrypt:z -v {{ ansible_facts['user_dir'] }}/.config/certbot-www:/var/www/certbot:z docker.io/certbot/certbot renew
       ExecStartPost=/usr/bin/systemctl --user reload nginx.service
   notify: Enable Certbot timer
 
 - name: Create Certbot renewal timer
   ansible.builtin.copy:
-    dest: "{{ ansible_user_dir }}/.config/systemd/user/certbot-renew.timer"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/systemd/user/certbot-renew.timer"
     content: |
       [Unit]
       Description=Twice daily Certbot renewal check

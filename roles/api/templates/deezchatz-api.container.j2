@@ -5,8 +5,8 @@ PublishPort=3000:3000
 Network=deezchatz.network
 UserNS=keep-id
 
-Environment=HOME={{ ansible_user_dir }}
-Environment=AWS_CONFIG_FILE={{ ansible_user_dir }}/.aws/config
+Environment=HOME={{ ansible_facts['user_dir'] }}
+Environment=AWS_CONFIG_FILE={{ ansible_facts['user_dir'] }}/.aws/config
 Environment=AWS_PROFILE=rolesanywhere
 Environment=REDIS_URL=redis://{{ oci_private_ip }}:6379
 Environment=PRIMARY_TABLE={{ dynamodb_identity_table | default('deezchatz-identity-table') }}
@@ -16,9 +16,9 @@ Environment=GOOGLE_CLIENT_ID={{ deez_google_client_id }}
 Environment=GOOGLE_CLIENT_SECRET={{ deez_google_client_secret }}
 Environment=GOOGLE_REDIRECT_URI={{ deez_google_redirect_uri }}
 
-Volume=%h/.aws/config:{{ ansible_user_dir }}/.aws/config:ro,Z
+Volume=%h/.aws/config:{{ ansible_facts['user_dir'] }}/.aws/config:ro,Z
 Volume=/usr/local/bin/aws_signing_helper:/usr/local/bin/aws_signing_helper:ro
-Volume=%h/.aws/certs:{{ ansible_user_dir }}/.aws/certs:ro,Z
+Volume=%h/.aws/certs:{{ ansible_facts['user_dir'] }}/.aws/certs:ro,Z
 
 [Service]
 Restart=always

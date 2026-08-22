@@ -1,13 +1,13 @@
 ---
 - name: Ensure user systemd container directory exists
   ansible.builtin.file:
-    path: /home/rocky/.config/containers/systemd
+    path: "{{ ansible_facts['user_dir'] }}/.config/containers/systemd"
     state: directory
     mode: '0755'
 
 - name: Create DeezChatz Podman Network Quadlet
   ansible.builtin.copy:
-    dest: /home/rocky/.config/containers/systemd/deezchatz.network
+    dest: "{{ ansible_facts['user_dir'] }}/.config/containers/systemd/deezchatz.network"
     content: |
       [Network]
       NetworkName=deezchatz
