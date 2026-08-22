@@ -32,6 +32,20 @@
     mode: '0600'
   notify: Reload and start DeezChatz API
 
+- name: Ensure DeezChatz config directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['user_dir'] }}/.config/deezchatz"
+    state: directory
+    mode: '0700'
+
+- name: Deploy FCM service account key
+  ansible.builtin.copy:
+    content: "{{ fcm_service_account_key }}"
+    dest: "{{ ansible_facts['user_dir'] }}/.config/deezchatz/fcm-service-account.json"
+    mode: '0600'
+  no_log: true
+  notify: Reload and start DeezChatz API
+
 - name: Template DeezChatz API Quadlet file
   ansible.builtin.template:
     src: deezchatz-api.container.j2
