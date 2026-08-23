@@ -2,8 +2,8 @@
 ## Webhook Configuration
 ##--------------------------------------------------------------------
 
-# The HTTP URL for the webhook (Private API port 3001)
-url = "http://khamoshchat-api:3001/offline_message"
+# The HTTP URL for the webhook (Private API port {{ api_private_port | default(3001) }})
+url = "http://{{ api_container_name | default('deezchatz-api') }}:{{ api_private_port | default(3001) }}/offline_message"
 
 # The pool size for HTTP requests
 pool_size = 32

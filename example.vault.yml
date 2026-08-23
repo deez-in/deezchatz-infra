@@ -19,5 +19,12 @@ aws_trust_anchor_arn: "arn:aws:rolesanywhere:region:account:trust-anchor/id"
 aws_profile_arn: "arn:aws:rolesanywhere:region:account:profile/id"
 aws_role_arn: "arn:aws:iam::account:role/role-name"
 
-# KhamoshChat API - Google OAuth
-khamoshchat_google_client_secret: "your google oauth client secret"
+# DeezChatz API - Google OAuth
+deez_google_client_secret: "your google oauth client secret"
+
+#Server addresses
+oci_bastion_ip: "Public server ip"
+oci_private_ip: "Private server ip"
+
+#FCM credentials
+fcm_service_account_key: '{"type":"service_account","project_id":"deezchatz-firebase-project","private_key_id":"dummy","private_key":"-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Z3VS5JJcds3xfn/ygWyF8PbnGy0AHB7MhgHcTz6sE2I2yPB\naFDrBz9vFqU4zK7X5XFH3GBsGHg4GZadCEDQzNKb8AQAHUIF+Yy/dummy\n-----END RSA PRIVATE KEY-----\n","client_email":"dummy@deezchatz-firebase-project.iam.gserviceaccount.com","client_id":"000000000000000000000","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"https://www.googleapis.com/robot/v1/metadata/x509/dummy"}'

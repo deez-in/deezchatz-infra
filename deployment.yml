@@ -6,18 +6,27 @@
 - name: System-Level Setup
   hosts: all
   become: yes
+  vars_files:
+    - config.yml
+    - vault.yml
   roles:
     - common
 
 - name: Public Instance Dependencies
   hosts: public_instances
   become: yes
+  vars_files:
+    - config.yml
+    - vault.yml
   roles:
     - aws_cli
 
 - name: Deploy Public Services
   hosts: public_instances
   become: no
+  vars_files:
+    - config.yml
+    - vault.yml
   roles:
     - rmqtt
     - api
@@ -26,5 +35,8 @@
 - name: Deploy Private Services
   hosts: private_instances
   become: no
+  vars_files:
+    - config.yml
+    - vault.yml
   roles:
     - redis

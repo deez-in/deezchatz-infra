@@ -6,18 +6,18 @@
       - git
     state: present
 
-- name: Get UID of the rocky user
-  ansible.builtin.command: id -u rocky
-  register: rocky_uid
+- name: Get UID of the deploy user
+  ansible.builtin.command: "id -u {{ ansible_user }}"
+  register: deploy_user_uid
   changed_when: false
 
-- name: Enable systemd lingering for the rocky user
-  ansible.builtin.command: loginctl enable-linger rocky
+- name: Enable systemd lingering for the deploy user
+  ansible.builtin.command: "loginctl enable-linger {{ ansible_user }}"
   args:
-    creates: "/var/lib/systemd/linger/rocky"
+    creates: "/var/lib/systemd/linger/{{ ansible_user }}"
 
 - name: Wake up the user systemd session via shell
-  ansible.builtin.command: "systemctl start user@{{ rocky_uid.stdout }}.service"
+  ansible.builtin.command: "systemctl start user@{{ deploy_user_uid.stdout }}.service"
   changed_when: false
 
 - name: Allow unprivileged users to bind to ports 80 and 443

@@ -1,0 +1,23 @@
+
+# DeezChatz API - Google OAuth
+deez_google_client_id: "715076094331-7mtbcp2hvd382r645ss6tsri18ekk6om.apps.googleusercontent.com"
+deez_google_redirect_uri: "https://api.chatz.deez.in/register/oauth/google/callback"
+
+# Let's Encrypt Automation & Domains
+letsencrypt_email: "debarkamondal@gmail.com"
+api_domain_name: "api.chatz.deez.in"
+mqtt_domain_name: "mqtt.deez.in"
+
+# DynamoDB & AWS Configuration
+dynamodb_identity_table: "deezchatz-identity-table"
+gsi_lookup_index: "lookup"
+aws_region: "ap-south-1"
+
+# Service & Performance Tuning
+redis_maxmemory: "12gb"
+api_container_name: "deezchatz-api"
+api_image_tag: "latest"
+api_private_port: 3001
+
+# Firebase Cloud Messaging (Push Notifications)
+fcm_project_id: "deezchatz-firebase-project"

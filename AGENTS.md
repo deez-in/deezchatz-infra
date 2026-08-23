@@ -1,4 +1,4 @@
-# AGENTS.md - Ansible Codebase Guide
+# AGENTS.md - DeezChatz Infrastructure Guide
 
 ## Overview
 
