@@ -25,7 +25,7 @@ http {
     server {
         listen       80;
         listen  [::]:80;
-        server_name  {{ api_domain_name }};
+        server_name  {{ api_domain_name }} {{ mqtt_domain_name | default('') }};
 
         location /.well-known/acme-challenge/ {
             root /var/www/certbot;

@@ -6,7 +6,7 @@ deez_google_redirect_uri: "https://api.chatz.deez.in/register/oauth/google/callb
 # Let's Encrypt Automation & Domains
 letsencrypt_email: "debarkamondal@gmail.com"
 api_domain_name: "api.chatz.deez.in"
-mqtt_domain_name: "mqtt.chatz.deez.in"
+mqtt_domain_name: "mqtt.deez.in"
 
 # DynamoDB & AWS Configuration
 dynamodb_identity_table: "deezchatz-identity-table"
