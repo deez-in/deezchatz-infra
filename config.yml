@@ -23,4 +23,4 @@ api_image_tag: "latest"
 api_private_port: 3001
 
 # Firebase Cloud Messaging (Push Notifications)
-fcm_project_id: "deezchatz-firebase-project"
+fcm_project_id: "deezchatz"

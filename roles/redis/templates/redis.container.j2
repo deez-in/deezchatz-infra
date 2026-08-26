@@ -2,7 +2,7 @@
 ContainerName={{ redis_container_name | default('redis') }}
 Image=docker.io/library/redis:7-alpine
 PublishPort=6379:6379
-Exec=redis-server --save 60 1 --loglevel warning --maxmemory {{ redis_maxmemory | default('12gb') }} --maxmemory-policy allkeys-lru
+Exec=redis-server --tcp-keepalive 60 --save 60 1 --loglevel warning --maxmemory {{ redis_maxmemory | default('12gb') }} --maxmemory-policy allkeys-lru
 
 [Service]
 Restart=always

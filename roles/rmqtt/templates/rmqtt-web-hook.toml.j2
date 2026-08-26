@@ -1,21 +1,18 @@
 ##--------------------------------------------------------------------
-## Webhook Configuration
+## Hook General Config
 ##--------------------------------------------------------------------
+queue_capacity = 300_000
+concurrency_limit = 128
 
-# The HTTP URL for the webhook (Private API port {{ api_private_port | default(3001) }})
-url = "http://{{ api_container_name | default('deezchatz-api') }}:{{ api_private_port | default(3001) }}/offline_message"
+## Default urls, supports http and file protocols
+urls = ["http://{{ api_container_name | default('deezchatz-api') }}:{{ api_private_port | default(3001) }}/offline_message"]
 
-# The pool size for HTTP requests
-pool_size = 32
+## Http config
+http_timeout = "8s"
+retry_max_elapsed_time = "60s"
+retry_multiplier = 2.5
 
-# HTTP timeout (milliseconds)
-timeout = 5000
-
-# Webhook rules
-# Supported actions: client_connected, client_disconnected, message_publish, offline_message, etc.
-rules = [
-    { event = "client_connected", action = "client_connected" },
-    { event = "client_disconnected", action = "client_disconnected" },
-    { event = "message_publish", action = "message_publish" },
-    { event = "offline_message", action = "offline_message" }
-]
+## Hook rules config
+rule.client_connected = [{ action = "client_connected" }]
+rule.client_disconnected = [{ action = "client_disconnected" }]
+rule.offline_message = [{ action = "offline_message", topic_filter = "/deezchatz/#" }]
