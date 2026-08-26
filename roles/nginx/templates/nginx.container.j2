@@ -1,6 +1,6 @@
 [Container]
 Image=docker.io/library/nginx:alpine
-ContainerName=nginx
+ContainerName={{ nginx_container_name | default('nginx') }}
 PublishPort=80:80
 PublishPort=443:443
 PublishPort=8883:8883
@@ -11,7 +11,7 @@ Volume={{ ansible_facts['user_dir'] }}/.config/certbot-www:/var/www/certbot:ro,z
 
 [Service]
 Restart=always
-ExecReload=/usr/bin/podman kill --signal=HUP nginx
+ExecReload=/usr/bin/podman kill --signal=HUP {{ nginx_container_name | default('nginx') }}
 
 [Install]
 WantedBy=default.target

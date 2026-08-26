@@ -1,4 +1,5 @@
 [Container]
+ContainerName={{ rmqtt_container_name | default('rmqtt') }}
 # Official image now contains required fixes
 Image=docker.io/rmqtt/rmqtt:latest
 PublishPort=1883:1883

@@ -16,6 +16,9 @@ aws_region: "ap-south-1"
 # Service & Performance Tuning
 redis_maxmemory: "12gb"
 api_container_name: "deezchatz-api"
+rmqtt_container_name: "rmqtt"
+redis_container_name: "redis"
+nginx_container_name: "nginx"
 api_image_tag: "latest"
 api_private_port: 3001
 

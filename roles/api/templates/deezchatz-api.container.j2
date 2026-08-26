@@ -1,4 +1,5 @@
 [Container]
+ContainerName={{ api_container_name | default('deezchatz-api') }}
 # Multi-arch image; ARM64 is pulled automatically
 Image=ghcr.io/deez-in/deezchatz-api:{{ api_image_tag | default('latest') }}
 PublishPort=3000:3000
