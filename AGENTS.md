@@ -14,8 +14,17 @@ This is an Ansible playbook repository for deploying rootless Podman containers 
 # Run deployment playbook with local config and encrypted secrets
 ansible-playbook -i inventory.yml deployment.yml -e @config.yml -e @vault.yml --ask-vault-pass
 
-# Or use a password file to avoid typing it every time
-# ansible-playbook -i inventory.yml deployment.yml -e @config.yml -e @vault.yml --vault-password-file .vault_pass
+# Update all container images and restart services
+ansible-playbook -i inventory.yml update.yml
+
+# Update a specific container (e.g. API only, RMQTT only, Redis only)
+ansible-playbook -i inventory.yml update.yml --tags api
+ansible-playbook -i inventory.yml update.yml --tags rmqtt
+ansible-playbook -i inventory.yml update.yml --tags redis
+ansible-playbook -i inventory.yml update.yml --tags nginx
+
+# Update API to a specific image tag
+ansible-playbook -i inventory.yml update.yml --tags api -e api_image_tag=v1.2.0
 
 # Run a specific play or task (limit to hosts)
 ansible-playbook -i inventory.yml deployment.yml --limit public_instances -e @config.yml -e @vault.yml --ask-vault-pass
@@ -178,6 +187,7 @@ ansible/
 ├── example.config.yml    # Placeholder/template for config.yml
 ├── example.vault.yml     # Placeholder/template for vault.yml
 ├── deployment.yml        # Main deployment playbook
+├── update.yml            # Playbook to update container images & restart services
 └── roles/                 # Modular Ansible roles
     ├── common/
     ├── aws_cli/

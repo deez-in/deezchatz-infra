@@ -1,0 +1,123 @@
+---
+# ==============================================================================
+# CONTAINER IMAGE UPDATES
+# ==============================================================================
+
+- name: Update Public Services Containers
+  hosts: public_instances
+  become: no
+  vars_files:
+    - config.yml
+  tasks:
+    # --------------------------------------------------------------------------
+    # DeezChatz API
+    # --------------------------------------------------------------------------
+    - name: Pull latest DeezChatz API image
+      ansible.builtin.command: "podman pull ghcr.io/deez-in/deezchatz-api:{{ api_image_tag | default('latest') }}"
+      changed_when: false
+      tags:
+        - api
+        - public
+        - containers
+
+    - name: Restart DeezChatz API service
+      ansible.builtin.systemd:
+        name: deezchatz-api.service
+        scope: user
+        state: restarted
+      tags:
+        - api
+        - public
+        - containers
+
+    # --------------------------------------------------------------------------
+    # RMQTT Broker
+    # --------------------------------------------------------------------------
+    - name: Pull latest RMQTT broker image
+      ansible.builtin.command: "podman pull docker.io/rmqtt/rmqtt:latest"
+      changed_when: false
+      tags:
+        - rmqtt
+        - public
+        - containers
+
+    - name: Restart RMQTT service
+      ansible.builtin.systemd:
+        name: rmqtt.service
+        scope: user
+        state: restarted
+      tags:
+        - rmqtt
+        - public
+        - containers
+
+    # --------------------------------------------------------------------------
+    # Nginx Reverse Proxy
+    # --------------------------------------------------------------------------
+    - name: Pull latest Nginx image
+      ansible.builtin.command: "podman pull docker.io/library/nginx:alpine"
+      changed_when: false
+      tags:
+        - nginx
+        - public
+        - containers
+
+    - name: Restart Nginx service
+      ansible.builtin.systemd:
+        name: nginx.service
+        scope: user
+        state: restarted
+      tags:
+        - nginx
+        - public
+        - containers
+
+    # --------------------------------------------------------------------------
+    # Cleanup Unused Images
+    # --------------------------------------------------------------------------
+    - name: Prune dangling Podman images on public node
+      ansible.builtin.command: "podman image prune -f"
+      changed_when: false
+      tags:
+        - prune
+        - cleanup
+        - public
+
+
+- name: Update Private Services Containers
+  hosts: private_instances
+  become: no
+  vars_files:
+    - config.yml
+  tasks:
+    # --------------------------------------------------------------------------
+    # Redis Cache & Broker Store
+    # --------------------------------------------------------------------------
+    - name: Pull latest Redis image
+      ansible.builtin.command: "podman pull docker.io/library/redis:7-alpine"
+      changed_when: false
+      tags:
+        - redis
+        - private
+        - containers
+
+    - name: Restart Redis service
+      ansible.builtin.systemd:
+        name: redis.service
+        scope: user
+        state: restarted
+      tags:
+        - redis
+        - private
+        - containers
+
+    # --------------------------------------------------------------------------
+    # Cleanup Unused Images
+    # --------------------------------------------------------------------------
+    - name: Prune dangling Podman images on private node
+      ansible.builtin.command: "podman image prune -f"
+      changed_when: false
+      tags:
+        - prune
+        - cleanup
+        - private
