@@ -1,6 +1,7 @@
 
 # DeezChatz API - Google OAuth
-deez_google_client_id: "715076094331-7mtbcp2hvd382r645ss6tsri18ekk6om.apps.googleusercontent.com"
+deez_google_client_id_android: "715076094331-7mtbcp2hvd382r645ss6tsri18ekk6om.apps.googleusercontent.com"
+deez_google_client_id_web: "715076094331-7mtbcp2hvd382r645ss6tsri18ekk6om.apps.googleusercontent.com"
 deez_google_redirect_uri: "https://api.chatz.deez.in/register/oauth/google/callback"
 
 # Let's Encrypt Automation & Domains
