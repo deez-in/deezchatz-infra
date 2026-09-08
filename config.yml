@@ -25,3 +25,9 @@ api_private_port: 3001
 
 # Firebase Cloud Messaging (Push Notifications)
 fcm_project_id: "deezchatz"
+
+# CORS Configuration (Web endpoints)
+cors_allowed_origins:
+  - '~^https?://(.*\.)?deez\.in(:[0-9]+)?$'
+  - '~^https?://localhost:8787$'
+  - '~^https?://127\.0\.0\.1:8787$'
