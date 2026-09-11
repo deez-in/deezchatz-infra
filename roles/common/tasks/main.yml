@@ -28,6 +28,14 @@
     state: present
     reload: yes
 
+- name: Enable memory overcommit (required by Redis)
+  ansible.builtin.sysctl:
+    name: vm.overcommit_memory
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
 # Podman's Netavark backend requires these modules for rootless networking.
 # They are usually loaded by firewalld, but must be manual if firewalld is inactive.
 - name: Load kernel modules required by Podman networking
