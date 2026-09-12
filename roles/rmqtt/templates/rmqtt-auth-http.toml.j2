@@ -1,0 +1,35 @@
+##--------------------------------------------------------------------
+## rmqtt-auth-http
+##--------------------------------------------------------------------
+
+http_timeout = "5s"
+http_headers.accept = "*/*"
+http_headers.Cache-Control = "no-cache"
+http_headers.User-Agent = "RMQTT/Auth"
+http_headers.Connection = "keep-alive"
+
+## Disconnect if publishing is rejected
+disconnect_if_pub_rejected = true
+
+## Disconnect After Expiration
+disconnect_if_expiry = false
+
+## Return 'Deny' if http request error otherwise 'Ignore'
+deny_if_error = true
+
+##--------------------------------------------------------------------
+## Authentication request.
+##
+## Variables:
+##  - %u: username
+##  - %c: clientid
+##  - %a: ipaddress
+##  - %r: protocol
+##  - %P: password
+##
+http_auth_req.url = "http://{{ api_container_name | default('deezchatz-api') }}:{{ api_private_port | default(3001) }}/verify-mqtt-client"
+http_auth_req.method = "post"
+http_auth_req.headers = { content-type = "application/json" }
+http_auth_req.params = { username = "%u", clientid = "%c", password = "%P", ip = "%a" }
+
+## We do not configure http_acl_req.url since topic authorization is not required.

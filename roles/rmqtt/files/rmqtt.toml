@@ -19,6 +19,7 @@ plugins.dir = "/app/rmqtt/rmqtt-plugins/"
 
 # Plugins started by default when the MQTT server starts
 plugins.default_startups = [
+    "rmqtt-auth-http",
     "rmqtt-session-storage",
     "rmqtt-message-storage",
     "rmqtt-web-hook",
@@ -34,7 +35,7 @@ listener.tcp.external.addr = "0.0.0.0:1883"
 listener.tcp.external.workers = 4
 listener.tcp.external.max_connections = 102400
 listener.tcp.external.max_handshaking_limit = 500
-listener.tcp.external.allow_anonymous = true
+listener.tcp.external.allow_anonymous = false
 listener.tcp.external.min_keepalive = 0
 listener.tcp.external.max_keepalive = 65535
 listener.tcp.external.keepalive_backoff = 0.75
