@@ -19,6 +19,7 @@ plugins.dir = "/app/rmqtt/rmqtt-plugins/"
 
 # Plugins started by default when the MQTT server starts
 plugins.default_startups = [
+    "rmqtt-acl",
     "rmqtt-auth-http",
     "rmqtt-session-storage",
     "rmqtt-message-storage",
